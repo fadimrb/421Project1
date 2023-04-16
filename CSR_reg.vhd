@@ -10,8 +10,8 @@ entity CSR_reg is
     instruction : in std_logic_vector (XLEN-1 downto 0);
     CSR: in std_logic;
 
-    CSR_out: out std_logic_vector (31 downto 0);
-    CSR_in: in std_logic_vector (31 downto 0);
+    CSR_out: out std_logic_vector (XLEN-1 downto 0);
+    CSR_in: in std_logic_vector (XLEN-1 downto 0);
     CSR_addr: in std_logic_vector (11 downto 0)
   ) ;
 end CSR_reg ;
