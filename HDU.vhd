@@ -31,4 +31,4 @@ architecture HDU of HDU is
         end if;
     end process;
 end architecture; 
-          
+ 
