@@ -9,9 +9,9 @@ entity add is
         datain2 : in std_logic_vector (XLEN-1 downto 0);
         result : out std_logic_vector (XLEN-1 downto 0)
     );
-end add4;
+end add;
 
 architecture rtl of add is
 begin
-    result <= std_logic_vector(to_unsigned(to_integer(unsigned(datain1)) + to_unsigned(to_integer(unsigned(datain2)) , XLEN));
+    result <= std_logic_vector(unsigned(datain1) + unsigned(datain2));
 end architecture;
