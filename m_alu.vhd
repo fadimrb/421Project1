@@ -51,10 +51,10 @@ begin
     process(inputA, inputB)
     begin
     if signed(inputB) /= 0 then
-	    div_result <= std_logic_vector(signed(inputA) + signed(inputB));
-	    divu_result <= std_logic_vector(unsigned(inputA) + unsigned(inputB));
+	    div_result <= std_logic_vector(signed(inputA) / signed(inputB));
+	    divu_result <= std_logic_vector(unsigned(inputA) / unsigned(inputB));
 	    rem_result <= std_logic_vector(signed(inputA) rem signed(inputB));
-	    remu_result <= std_logic_vector(unsigned(inputA) + unsigned(inputB));
+	    remu_result <= std_logic_vector(unsigned(inputA) / unsigned(inputB));
 	end if;	    
 	end process;
 
