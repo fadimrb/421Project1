@@ -11,7 +11,7 @@
 -- conditions.
 -- Source location: https://github.com/ERCL-AUB/archer/rv32i_single_cycle
 --
--- M extension Arithmetic and Logic Unit (MALU)
+-- Arithmetic and Logic Unit (ALU)
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -40,9 +40,9 @@ architecture rtl of m_alu is
     signal rem_result : std_logic_vector (XLEN-1 downto 0);
     signal remu_result : std_logic_vector (XLEN-1 downto 0);
 begin
-
-    mul_result_temp <= std_logic_vector(signed(inputA) * signed(inputB));
+    
     mul_result <= mul_result_temp(31 downto 0);
+    mul_result_temp <= std_logic_vector(signed(inputA) * signed(inputB));
     mulh_result <= mul_result_temp(63 downto 32);
     mulhsu_result_temp <= std_logic_vector(signed(inputA) * signed(inputB));
     mulhsu_result <= mulhsu_result_temp(31 downto 0);
@@ -54,10 +54,10 @@ begin
 	    div_result <= std_logic_vector(signed(inputA) / signed(inputB));
 	    divu_result <= std_logic_vector(unsigned(inputA) / unsigned(inputB));
 	    rem_result <= std_logic_vector(signed(inputA) rem signed(inputB));
-	    remu_result <= std_logic_vector(unsigned(inputA) / unsigned(inputB));
+	    remu_result <= std_logic_vector(unsigned(inputA) rem unsigned(inputB));
 	end if;	    
 	end process;
-
+ 
     with ALUop select
     result <=   mul_result when ALU_OP_MUL, -- mul
                 mulh_result when ALU_OP_MULH, -- mulh
