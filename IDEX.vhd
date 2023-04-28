@@ -86,25 +86,6 @@ begin
             regAout<= regAin;
             regBout<= regBin;
             rdout<= rdin;  
-        else then 
-            
-            JumpOut <= '0';
-            LuiOut <= '0';
-            CSROut<= '0';
-            PCSrcOut<= '0';
-            RegWriteOut <= '0';
-            ALUSrc1Out <= ('0';
-            ALUSrc2Out <= '0';
-            ALUSrc3Out <= '0';
-            ALUOpOut <= (others => '0');
-            MemWriteOut <= '0';
-            MemReadOut <= '0';
-            MemToRegOut <= '0';
-            immgenout<= (others => '0');
-            PCOut<= (others => '0');
-            regAout<= (others => '0');
-            regBout<= (others => '0');
-            rdout<= (others => '0');  
         end if;
     end process;
 end architecture;
