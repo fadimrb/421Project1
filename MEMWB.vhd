@@ -44,14 +44,6 @@ begin
             ALUout,<= ALUin;
             readout<= readin;
             rdout<= rdin;  
-        else then 
-            JumpOut <= '0';
-            LuiOut <= '0';
-            MemToRegOut <= '0';
-            RegWriteOut <= '0';
-            readout<= (others => '0');
-            ALUout <= (others => '0');
-            rdout<= (others => '0');  
         end if;
     end process;
 end architecture;
