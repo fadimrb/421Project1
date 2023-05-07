@@ -23,7 +23,6 @@ begin
         elsif rising_edge(clk) then
             --if PCWrite = '1' then
                 pcval := datain;
-            --else pcval := (others => '0');
             --end if;
         end if;
         dataout <= pcval;
