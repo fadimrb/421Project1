@@ -7,9 +7,9 @@ entity HDU is
     Inst: in std_logic_vector(31 downto 0);
     IDEXMemRead: in std_logic;
     ExReg: in std_logic_vector(4 downton 0);
-    ctrl: out std_logic; --Goes into the control unit 
-    IFIDWrite out std_logic; --Need to modify IF/ID buffer
-    PCWrite: out std_logic; --Need to modify PCWrite
+    ctrl: out std_logic; --Goes into control mux 
+    IFIDWrite out std_logic;
+    PCWrite: out std_logic 
   );
 end HDU;
 
