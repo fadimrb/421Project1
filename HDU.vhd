@@ -6,7 +6,7 @@ entity HDU is
   port(
     Inst: in std_logic_vector(31 downto 0);
     IDEXMemRead: in std_logic;
-    ExReg: in std_logic_vector(4 downton 0);
+    ExReg: in std_logic_vector(4 downto 0);
     ctrl: out std_logic; --Goes into control mux 
     IFIDWrite out std_logic;
     PCWrite: out std_logic 
