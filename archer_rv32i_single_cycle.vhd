@@ -279,6 +279,68 @@ architecture rtl of archer_rv32i_single_cycle is
         );
     end component;
 
+    component DFU is 
+        port(
+            EXMEMRegWrite: in std_logic;
+            MEMWBRegWrite: in std_logic;
+            EXMEMReg: in std_logic_vector(4 downto 0);
+            MEMWBReg: in std_logic_vector(4 downto 0);
+            RS1: in std_logic_vector(4 downto 0);
+            RS2: in std_logic_vector(4 downto 0);
+
+            ForwardA: out std_logic_vector(1 downto 0);
+            ForwardB: out std_logic_vector(1 downto 0)
+        );
+    end component;
+
+    component HDU is 
+        port(
+            Inst: in std_logic_vector(31 downto 0);
+            IDEXMemRead: in std_logic;
+            ExReg: in std_logic_vector(4 downto 0);
+
+            ctrl: out std_logic; --Goes into control mux 
+            IFIDWrite out std_logic;
+            PCWrite: out std_logic 
+        );
+    end component;
+
+    component mux3to1 is
+        port (
+            sel : in std_logic_vector(1 downto 0);
+            input0 : in std_logic_vector (XLEN-1 downto 0);
+            input1 : in std_logic_vector (XLEN-1 downto 0);
+            input2 : in std_logic_vector (XLEN-1 downto 0);
+            output : out std_logic_vector (XLEN-1 downto 0)
+        );
+    end component;
+
+    -- ID signals
+    signal PCin : std_logic_vector (XLEN-1 downto 0);
+
+    -- EX signals 
+    signal e_immgenin : std_logic_vector (XLEN-1 downto 0); 
+    signal e_rdin : std_logic_vector (4 downto 0); 
+    signal e_regAin : std_logic_vector (XLEN-1 downto 0);
+    signal e_regBin : std_logic_vector (XLEN-1 downto 0); 
+    signal e_PCin : std_logic_vector (XLEN-1 downto 0);
+
+    -- MEM signals 
+    signal m_RegWriteIn : std_logic;
+    signal m_MemWriteIn : std_logic;
+    signal m_MemReadIn : std_logic;
+    signal m_MemToRegIn : std_logic;
+    signal m_rdin: std_logic_vector (4 downto 0);
+    signal m_regBin: std_logic_vector (XLEN-1 downto 0);
+    signal m_ALUin: std_logic_vector (XLEN-1 downto 0);
+
+    -- WB signals 
+    signal w_RegWriteIn : std_logic;
+    signal w_MemToRegIn : std_logic;
+    signal w_rdin: std_logic_vector (4 downto 0);
+    signal w_ALUin: std_logic_vector (XLEN-1 downto 0);
+    signal w_readin: std_logic_vector (XLEN-1 downto 0);
+
     -- pc signals
     signal d_pc_in : std_logic_vector (XLEN-1 downto 0);
     signal d_pc_out : std_logic_vector (XLEN-1 downto 0);
@@ -415,7 +477,8 @@ begin
 
     CSR_RF: CSR_reg port map (clk => clk, rst_n => rst_n, instruction => d_instr_word, CSR => c_CSR, CSR_out => c_CSR_out, CSR_in => d_alu_out, CSR_addr => c_CSR_addr);
 
-    IFID : IFID port map (clk => clk, rst => rst_n, IFFlush => PCSrc, PCin => PCin,IMEMin => fp_instr_word, PCOut => PCout, IMEMOut => IMEMOut);
+    IFID : IFID port map (clk => clk, rst => rst_n, IFFlush => PCSrc, PCin => PCin,IMEMin => fp_instr_word,
+                          PCOut => PCout, IMEMOut => IMEMOut);
 
     IDEX : IDEX port map (clk => clk, rst => rst_n, JumpIn => JumpIn, 
                           LuiIn => c_lui, CSRin => c_CSR, PCSrcIn => c_PCSrc, RegWriteIn => c_reg_write, ALUSrc1 => c_alu_src1, ALUSrc2 => c_alu_src2, ALUSrc3 => c_alu_src3, ALUOp => c_alu_op, MemWriteIn => c_mem_write, MemReadIn => c_mem_read, MemToRegIn => c_mem_to_reg,
@@ -432,7 +495,16 @@ begin
     MEMWB : MEMWB port map (clk => clk, rst => rst_n, JumpIn => c_jump, LuiIn => c_lui, RegWriteIn => c_reg_write, MemToRegIn => c_mem_to_reg,
                           JumpOut => JumpOut, LuiOut => LuiOut, RegWriteOut => RegWriteOut, MemToRegOut => MemToRegOut,
                           readin => d_data_mem_out, rdin => d_rd, ALUin => d_alu_out, 
-                          ALUout => ALUout, readout => readout, rdout => rdout);                        
+                          ALUout => ALUout, readout => readout, rdout => rdout);
+    
+    DFU : DFU port map (EXMEMRegWrite => RegWriteOut, MEMWBRegWrite => RegWriteOut, EXMEMReg => rdout, MEMWBReg => rdout, RS1 => d_rs1, RS2 => d_rs2,
+                        ForwardA => ForwardA, ForwardB => ForwardB);
+    
+    HDU : HDU port map (Inst: in std_logic_vector(31 downto 0);
+    IDEXMemRead: in std_logic;
+    ExReg: in std_logic_vector(4 downto 0);
+                        Inst => d_instr_word, IDEXMemRead => MemReadOut, ExReg => rdout, 
+                        ctrl => ctrl, IFIDWrite => IFIDWrite, PCWrite => PCWrite);
 
     d_rs1 <= d_instr_word (LOG2_XRF_SIZE+14 downto 15);
     d_rs2 <= d_instr_word (LOG2_XRF_SIZE+19 downto 20);
