@@ -168,6 +168,117 @@ architecture rtl of archer_rv32i_single_cycle is
         ) ;
     end component ;
 
+    component IFID is
+        port(
+            clk: in std_logic;
+            rst: in std_logic;
+            IFFlush: in std_logic;
+            PCin: in std_logic_vector(XLEN-1 downto 0);
+            IMEMin: in std_logic_vector(XLEN-1 downto 0);
+
+            PCout: out std_logic_vector(XLEN-1 downto 0);
+            IMEMout: out std_logic_vector(XLEN-1 downto 0)
+        );
+    end component;
+
+    component IDEX is
+        port(
+            clk: in std_logic;
+            rst: in std_logic;
+            JumpIn : in std_logic;
+            LuiIn : in std_logic;
+            CSRIn: in std_logic;
+            PCSrcIn : in std_logic;
+            RegWriteIn : in std_logic;
+            ALUSrc1In : in std_logic;
+            ALUSrc2In : in std_logic;
+            ALUSrc3In : in std_logic;
+            ALUOpIn : in std_logic_vector (3 downto 0);
+            MemWriteIn : in std_logic;
+            MemReadIn : in std_logic;
+            MemToRegIn : in std_logic;
+
+            JumpOut : out std_logic;
+            LuiOut : out std_logic;
+            CSROut: out std_logic;
+            PCSrcOut: out std_logic;
+            RegWriteOut : out std_logic;
+            ALUSrc1Out : out std_logic;
+            ALUSrc2Out : out std_logic;
+            ALUSrc3Out : out std_logic;
+            ALUOpOut : out std_logic_vector (3 downto 0);
+            MemWriteOut : out std_logic;
+            MemReadOut : out std_logic;
+            MemToRegOut : out std_logic;
+
+            PCin: in std_logic_vector(XLEN-1 downto 0);
+            regAin: in std_logic_vector(XLEN-1 downto 0);
+            regBin: in std_logic_vector(XLEN-1 downto 0);
+            rdin: in std_logic_vector(XLEN-1 downto 0);
+            immgenin: in std_logic_vector(XLEN-1 downto 0);
+
+            immgenout: out std_logic_vector(XLEN-1 downto 0);
+            PCOut: out std_logic_vector(XLEN-1 downto 0);
+            regAout: out std_logic_vector(XLEN-1 downto 0);
+            regBout: out std_logic_vector(XLEN-1 downto 0);
+            rdout: out std_logic_vector(XLEN-1 downto 0)        
+        );
+    end component;
+
+    component EXMEM is
+        port(
+            clk: in std_logic;
+            rst: in std_logic;
+            JumpIn : in std_logic;
+            LuiIn : in std_logic;
+            PCSrcIn : in std_logic;
+            RegWriteIn : in std_logic;
+            MemWriteIn : in std_logic;
+            MemReadIn : in std_logic;
+            MemToRegIn : in std_logic;
+
+            JumpOut : out std_logic;
+            LuiOut : out std_logic;
+            PCSrcOut: out std_logic;
+            RegWriteOut : out std_logic;
+            MemWriteOut : out std_logic;
+            MemReadOut : out std_logic;
+            MemToRegOut : out std_logic;
+
+            ALUin: in std_logic_vector(XLEN-1 downto 0);
+            regBin: in std_logic_vector(XLEN-1 downto 0);
+            rdin: in std_logic_vector(XLEN-1 downto 0);
+
+            ALUout: out std_logic_vector(XLEN-1 downto 0);
+            regBout: out std_logic_vector(XLEN-1 downto 0);
+            rdout: out std_logic_vector(XLEN-1 downto 0)        
+        );
+    end component;
+
+    component MEMWB is
+        port(
+            clk: in std_logic;
+            rst: in std_logic;
+            JumpIn : in std_logic; --dk
+            LuiIn : in std_logic;  --dk
+            RegWriteIn : in std_logic; --WB
+            MemToRegIn : in std_logic; --WB
+
+            JumpOut : out std_logic;
+            LuiOut : out std_logic;
+            RegWriteOut : out std_logic;
+            MemToRegOut : out std_logic;
+
+            readin: in std_logic_vector(XLEN-1 downto 0);
+            rdin: in std_logic_vector(XLEN-1 downto 0);
+            ALUin: in std_logic_vector(XLEN-1 downto 0);
+            
+            ALUout: out std_logic_vector(XLEN-1 downto 0);
+            readout: out std_logic_vector(XLEN-1 downto 0);
+            rdout: out std_logic_vector(XLEN-1 downto 0)        
+        );
+    end component;
+
     -- pc signals
     signal d_pc_in : std_logic_vector (XLEN-1 downto 0);
     signal d_pc_out : std_logic_vector (XLEN-1 downto 0);
