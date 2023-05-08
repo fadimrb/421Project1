@@ -172,7 +172,7 @@ architecture rtl of archer_rv32i_single_cycle is
         port(
             clk: in std_logic;
             rst: in std_logic;
-            IFFlush: in std_logic;
+            --IFFlush: in std_logic;
             PCin: in std_logic_vector(XLEN-1 downto 0);
             IMEMin: in std_logic_vector(XLEN-1 downto 0);
 
@@ -210,11 +210,14 @@ architecture rtl of archer_rv32i_single_cycle is
             MemWriteOut : out std_logic;
             MemReadOut : out std_logic;
             MemToRegOut : out std_logic;
-            
+
+            PCin: in std_logic_vector(XLEN-1 downto 0);
             regAin: in std_logic_vector(XLEN-1 downto 0);
             regBin: in std_logic_vector(XLEN-1 downto 0);
             rdin: in std_logic_vector(XLEN-1 downto 0);
+            immgenin: in std_logic_vector(XLEN-1 downto 0);
 
+            immgenout: out std_logic_vector(XLEN-1 downto 0);
             PCOut: out std_logic_vector(XLEN-1 downto 0);
             regAout: out std_logic_vector(XLEN-1 downto 0);
             regBout: out std_logic_vector(XLEN-1 downto 0);
@@ -312,37 +315,77 @@ architecture rtl of archer_rv32i_single_cycle is
         );
     end component;
 
+    component add is
+        port (
+            datain1 : in std_logic_vector (XLEN-1 downto 0);
+            datain2 : in std_logic_vector (XLEN-1 downto 0);
+            result : out std_logic_vector (XLEN-1 downto 0)
+        );
+    end component;
+
+    component control_mux is
+        port (
+            Selector : in std_logic;
+
+            JumpIn : in std_logic;
+            LuiIn : in std_logic;
+            CSRIn: in std_logic;
+            PCSrcIn : in std_logic;
+            RegWriteIn : in std_logic;
+            ALUSrc1In : in std_logic;
+            ALUSrc2In : in std_logic;
+            ALUSrc3In : in std_logic;
+            ALUOpIn : in std_logic_vector (3 downto 0);
+            MemWriteIn : in std_logic;
+            MemReadIn : in std_logic;
+            MemToRegIn : in std_logic; 
+            CSR_addrIn: in std_logic_vector (11 downto 0);
+
+            JumpOut : out std_logic;
+            LuiOut : out std_logic;
+            CSROut: out std_logic;
+            PCSrcOut : out std_logic;
+            RegWriteOut : out std_logic;
+            ALUSrc1Out : out std_logic;
+            ALUSrc2Out : out std_logic;
+            ALUSrc3Out : out std_logic;
+            ALUOpOut : out std_logic_vector (3 downto 0);
+            MemWriteOut : out std_logic;
+            MemReadOut : out std_logic;
+            MemToRegOut : out std_logic; 
+            CSR_addrOut : out std_logic_vector (11 downto 0)
+        ) ;
+    end component;
+
     -- ID signals
     signal PCin : std_logic_vector (XLEN-1 downto 0);
     signal f_pc_out : std_logic_vector (XLEN-1 downto 0);
+    signal c_ifFlush : std_logic;
+    signal c_pcout : std_logic_vector (XLEN-1 downto 0);
+    signal c_immemout : std_logic_vector (XLEN-1 downto 0);
+    signal c_write : std_logic;
 
     -- EX signals 
-    signal e_immgenin : std_logic_vector (XLEN-1 downto 0); 
-    signal e_rdin : std_logic_vector (4 downto 0); 
-    signal e_regAin : std_logic_vector (XLEN-1 downto 0);
-    signal e_regBin : std_logic_vector (XLEN-1 downto 0); 
-    signal e_PCin : std_logic_vector (XLEN-1 downto 0);
-    signal e_immgenout : std_logic_vector (XLEN-1 downto 0); 
-    signal e_rdout : std_logic_vector (4 downto 0); 
     signal e_regAout : std_logic_vector (XLEN-1 downto 0);
-    signal e_regBout : std_logic_vector (XLEN-1 downto 0); 
-    signal e_PCout : std_logic_vector (XLEN-1 downto 0);
+    signal e_regBout : std_logic_vector (XLEN-1 downto 0);
+    signal e_rdout : std_logic_vector (XLEN-1 downto 0); 
 
     -- MEM signals 
-    signal m_RegWriteIn : std_logic;
-    signal m_MemWriteIn : std_logic;
-    signal m_MemReadIn : std_logic;
-    signal m_MemToRegIn : std_logic;
-    signal m_rdin: std_logic_vector (4 downto 0);
-    signal m_regBin: std_logic_vector (XLEN-1 downto 0);
-    signal m_ALUin: std_logic_vector (XLEN-1 downto 0);
+    signal m_JumpOut : std_logic;
+    signal m_LuiOut : std_logic;
+    signal m_PCSrcOut : std_logic;
+    signal m_RegWriteOut : std_logic;
+    signal m_MemWriteOut : std_logic;
+    signal m_MemReadOut : std_logic;
+    signal m_MemToRegOut : std_logic;
+    signal m_ALUout : std_logic_vector (XLEN-1 downto 0);
+    signal m_rdout : std_logic_vector (4 downto 0);
+    signal m_ALUSrc2out : std_logic_vector (XLEN-1 downto 0);
 
     -- WB signals 
-    signal w_RegWriteIn : std_logic;
-    signal w_MemToRegIn : std_logic;
-    signal w_rdin: std_logic_vector (4 downto 0);
-    signal w_ALUin: std_logic_vector (XLEN-1 downto 0);
-    signal w_readin: std_logic_vector (XLEN-1 downto 0);
+    signal w_ALUout : std_logic_vector (XLEN-1 downto 0);
+    signal w_readout : std_logic_vector (XLEN-1 downto 0);
+    signal w_rdout : std_logic_vector (4 downto 0);
 
     -- pc signals
     signal d_pc_in : std_logic_vector (XLEN-1 downto 0);
@@ -362,8 +405,8 @@ architecture rtl of archer_rv32i_single_cycle is
     signal c_CSR : std_logic;
     signal c_PCSrc : std_logic;
     signal c_reg_write : std_logic;
-    signal c_alu_src1 : std_logic;
-    signal c_alu_src2 : std_logic;
+    signal c_alu_src1 : std_logic_vector (1 downto 0);
+    signal c_alu_src2 : std_logic_vector (1 downto 0);
     signal c_alu_src3 : std_logic;
     signal c_alu_op : std_logic_vector (3 downto 0);
     signal c_mem_write : std_logic;
@@ -431,23 +474,44 @@ architecture rtl of archer_rv32i_single_cycle is
     signal d_funct3 : std_logic_vector (2 downto 0);
     signal d_funct7 : std_logic_vector (6 downto 0);
 
-    --IDEX signals
-    signal c2_branch_out : std_logic;
-    signal c2_jump : std_logic;
-    signal c2_lui : std_logic;
-    signal c2_CSR : std_logic;
-    signal c2_PCSrc : std_logic;
-    signal c2_reg_write : std_logic;
-    signal c2_alu_src1 : std_logic;
-    signal c2_alu_src2 : std_logic;
-    signal c2_alu_src3 : std_logic;
-    signal c2_alu_op : std_logic_vector (3 downto 0);
-    signal c2_mem_write : std_logic;
-    signal c2_mem_read : std_logic;
-    signal c2_mem_to_reg : std_logic;
-    signal c2_CSR_out: std_logic_vector (31 downto 0);
-    signal c2_CSR_in: std_logic_vector (31 downto 0);
-    signal c2_CSR_addr: std_logic_vector (11 downto 0);
+    -- add signals
+    signal a_1 : std_logic_vector (XLEN-1 downto 0);
+    signal a_2 : std_logic_vector (XLEN-1 downto 0);
+
+    -- control_mux signals
+    signal    cm_selector : std_logic;
+    signal    cm_JumpOut :  std_logic;
+    signal    cm_LuiOut :  std_logic;
+    signal    cm_CSROut:  std_logic;
+    signal    cm_PCSrcOut :  std_logic;
+    signal    cm_RegWriteOut :  std_logic;
+    signal    cm_ALUSrc1Out :  std_logic;
+    signal    cm_ALUSrc2Out :  std_logic;
+    signal    cm_ALUSrc3Out :  std_logic;
+    signal    cm_ALUOpOut :  std_logic_vector (3 downto 0);
+    signal    cm_MemWriteOut :  std_logic;
+    signal    cm_MemReadOut :  std_logic;
+    signal    cm_MemToRegOut :  std_logic; 
+    signal    cm_CSR_addrOut :  std_logic_vector (11 downto 0)
+    
+    signal    ex_JumpOut :  std_logic;
+    signal    ex_LuiOut :  std_logic;
+    signal    ex_CSROut:  std_logic;
+    signal    ex_PCSrcOut :  std_logic;
+    signal    ex_RegWriteOut :  std_logic;
+    signal    ex_ALUSrc1Out :  std_logic;
+    signal    ex_ALUSrc2Out :  std_logic;
+    signal    ex_ALUSrc3Out :  std_logic;
+    signal    ex_ALUOpOut :  std_logic_vector (3 downto 0);
+    signal    ex_MemWriteOut :  std_logic;
+    signal    ex_MemReadOut :  std_logic;
+    signal    ex_MemToRegOut :  std_logic; 
+    signal    ex_CSR_addrOut :  std_logic_vector (11 downto 0);
+
+    --HDU signals
+    signal hd_IFIDWrite : std_logic;
+    signal hd_PCWrite : std_logic;
+
 
 begin
 
@@ -476,14 +540,14 @@ begin
 
     -- operand 1 mux system
     lui_mux : mux2to1 port map (sel => c_lui, input0 => d_pc_out, input1 => d_zero, output => d_lui_mux_out);
-    alu_src1_mux : mux2to1 port map (sel => c_alu_src1, input0 => d_regA, input1 => d_lui_mux_out, output => d_alu_src1);
+    alu_src1_mux : mux3to1 port map (sel => c_alu_src1, input0 => e_regAout, input1 => d_reg_file_datain, input2 => dmem_datain, output => d_alu_src1);
 
     -- operand 2 mux system
     CSR_out_mux : mux2to1 port map (sel => c_CSR, input0 => d_immediate, input1 => c_CSR_out, output => d_csr_mux_out);
-    alu_src2_mux : mux2to1 port map (sel => c_alu_src2, input0 => d_regB, input1 => d_csr_mux_out, output => d_alu_src2);
+    alu_src2_mux : mux3to1 port map (sel => c_alu_src2, input0 => d_regBout, input1 => d_csr_mux_out, input2 => dmem_datain, output => d_alu_src2);
 
-    alu_inst : alu port map (inputA => d_alu_src1, inputB => d_alu_src2, ALUop => c_alu_op, result => d_alu_out);
-    m_alu_inst : m_alu port map (inputA => d_alu_src1, inputB => d_alu_src2, ALUop => c_alu_op, result => d_mul_alu_out);
+    alu_inst : alu port map (inputA => d_alu_src1, inputB => d_alu_src2, ALUop => ex_ALUOpOut, result => d_alu_out);
+    m_alu_inst : m_alu port map (inputA => d_alu_src1, inputB => d_alu_src2, ALUop => ex_ALUOpOut, result => d_mul_alu_out);
 
     alu_src3_mux : mux2to1 port map (sel => c_alu_src3, input0 => d_alu_out, input1 => d_mul_alu_out, output => d_alu_src3);
 
@@ -498,41 +562,66 @@ begin
 
     CSR_RF: CSR_reg port map (clk => clk, rst_n => rst_n, instruction => d_instr_word, CSR => c_CSR, CSR_out => c_CSR_out, CSR_in => d_alu_out, CSR_addr => c_CSR_addr);
 
-    IFID : IFID port map (clk => clk, rst => rst_n, IFFlush => PCSrc, PCin => PCin, IMEMin => f_pc_out,
-                          PCOut => PCout, IMEMOut => IMEMOut);
+    add : add port map (datain1 => a_1, datain2 => d_immediate, result => d_pc_in);
 
-    IDEX : IDEX port map (clk => clk, rst => rst_n, JumpIn => c_jump, 
-                          LuiIn => c_lui, CSRin => c_CSR, PCSrcIn => c_PCSrc, RegWriteIn => c_reg_write, ALUSrc1 => c_alu_src1, ALUSrc2 => c_alu_src2, ALUSrc3 => c_alu_src3, ALUOp => c_alu_op, MemWriteIn => c_mem_write, MemReadIn => c_mem_read, MemToRegIn => c_mem_to_reg,
-                          JumpOut => c2_jump, LuiOut => c2_lui, CSROut => c2_csr, PCSrcOut => c2_pcsrc, RegWriteOut => c2_reg_write, ALUSrc1Out => c2_alu_src1, ALUSrc2Out => c2_alu_src2, ALUSrc3Out => c2_alu_src3, ALUOpOut => c2_alu_op, MemWriteOut => c2_mem_write, MemReadOut => c2_mem_read, MemToRegOut => c2_mem_to_reg,
-                          regAin => e_regAin, regBin => e_regBin, rdin => e_rdin, immgenin => e_immgenin,
-                          immgenout => e_immgenout, regAout => e_regAout, regBout => e_regBout, rdout => e_rdout);
+    control_mux : control_mux port map (Selector => cm_selector,
+                                    JumpIn => c_jump, LuiIn => c_lui, CSRIn => c_CSR, PCSrcIn => c_PCSrc, RegWriteIn => c_reg_write,
+                                    ALUSrc1In => c_alu_src1, ALUSrc2In => c_alu_src2, ALUSrc3In => c_alu_src3, ALUOpIn => c_alu_op, MemWriteIn => c_mem_write,
+                                    MemReadIn => c_mem_read, MemToRegIn => c_mem_to_reg, CSR_addrIn => c_CSR_addr
+                                    JumpOut => cm_JumpOut, LuiOut => cm_LuiOut, CSROut => cm_CSROut, PCSrcOut => cm_PCSrcOut, RegWriteOut => cm_RegWriteOut,
+                                    ALUSrc1Out => cm_ALUSrc1Out, ALUSrc2Out => cm_ALUSrc2Out, ALUSrc3Out => cm_ALUSrc3Out, ALUOpOut => cm_ALUOpOut, MemWriteOut => cm_MemWriteOut,
+                                    MemReadOut => cm_MemReadOut, MemToRegOut => cm_MemToRegOut, CSR_addrOut => cm_CSR_addrOut);
+
+    IFID : IFID port map (clk => clk, rst => rst_n,
+
+                          ifFlush => c_ifFlush, ifidwrite => c_write,
+
+                          PCin => d_pc_out, IMEMin => imem_dataout,
+
+                          PCOut => c_pcout, IMEMOut => c_immemout);
+
+    IDEX : IDEX port map (clk => clk, rst => rst_n,
+
+                          JumpIn => cm_JumpOut, LuiIn => cm_LuiOut, CSRIn => cm_CSROut, PCSrcIn => cm_PCSrcOut, RegWriteIn => cm_RegWriteOut,
+                          ALUSrc1 => cm_ALUSrc1Out, ALUSrc2 => cm_ALUSrc2Out, ALUSrc3 => cm_ALUSrc3Out, ALUOpIn => cm_ALUOpOut, MemWriteIn => cm_MemWriteOut, MemReadIn => cm_MemReadOut, MemToRegIn => cm_MemToRegOut,
+
+                          JumpOut => ex_JumpOut, LuiOut => ex_LuiOut, CSROut => ex_CSROut, PCSrcOut => ex_PCSrcOut, RegWriteOut => ex_RegWriteOut, ALUSrc1Out => ex_ALUSrc1Out, ALUSrc2Out => ex_ALUSrc2Out, ALUSrc3Out => ex_ALUSrc3Out, ALUOpOut => ex_ALUOpOut, MemWriteOut => ex_MemWriteOut, MemReadOut => ex_MemReadOut, MemToRegOut => ex_MemToRegOut,
+
+                          regAin => d_regA, regBin => d_regB, rdin => d_rd, rs1in => d_rs1, rs2in =>d_rs2,
+                          regAout => e_regAout, regBout => e_regBout, rdout => e_rdout);
     
     EXMEM : EXMEM port map (clk => clk, rst => rst_n,
-                          JumpIn => c_jump ,LuiIn => c_lui, PCSrcIn => c_PCSrc, RegWriteIn => m_RegWriteIn, MemWriteIn => m_MemWriteIn, MemReadIn => m_MemReadIn, MemToRegIn => m_MemToRegIn,
-                          JumpOut => JumpOut, LuiOut => LuiOut, PCSrcOut => PCSrcOut, RegWriteOut => RegWriteOut, MemWriteOut => MemWriteOut, MemReadOut => MemReadOut, MemToRegOut => MemToRegOut,
-                          ALUin => m_ALUin, regBin => m_regBin, rdin => m_rdin,
-                          ALUout => ALUout, regBout => regBout, rdout => rdout);
+
+                          JumpIn => ex_JumpOut,LuiIn => ex_LuiOut, PCSrcIn => ex_PCSrcOut, RegWriteIn => ex_RegWriteOut, MemWriteIn => ex_MemWriteOut, MemReadIn => ex_MemReadOut, MemToRegIn => ex_MemToRegOut,
+
+                          JumpOut => m_JumpOut, LuiOut => m_LuiOut, PCSrcOut => m_PCSrcOut, RegWriteOut => m_RegWriteOut, MemWriteOut => m_MemWriteOut, MemReadOut => m_MemReadOut, MemToRegOut => m_MemToRegOut,
+
+                          ALUin => d_alu_src3, rdin => m_rdin, ALUSrc2in => d_alu_src2,
+                          ALUout => dmem_datain, rdout => m_rdout, ALUSrc2out => dmem_addr);
     
     MEMWB : MEMWB port map (clk => clk, rst => rst_n,
-                          JumpIn => c_jump, LuiIn => c_lui, RegWriteIn => c_reg_write, MemToRegIn => c_mem_to_reg,
-                          JumpOut => JumpOut, LuiOut => LuiOut, RegWriteOut => RegWriteOut, MemToRegOut => MemToRegOut,
-                          readin => w_readin, rdin => w_rdin, ALUin => w_ALUin, 
-                          ALUout => ALUout, readout => readout, rdout => rdout);
-    
-    DFU : DFU port map (EXMEMRegWrite => RegWriteOut, MEMWBRegWrite => RegWriteOut, EXMEMReg => rdout, MEMWBReg => rdout, RS1 => d_rs1, RS2 => d_rs2,
-                        ForwardA => ForwardA, ForwardB => ForwardB);
-    
-    HDU : HDU port map (Inst: in std_logic_vector(31 downto 0);
-    IDEXMemRead: in std_logic;
-    ExReg: in std_logic_vector(4 downto 0);
-                        Inst => d_instr_word, IDEXMemRead => MemReadOut, ExReg => rdout, 
-                        ctrl => ctrl, IFIDWrite => IFIDWrite, PCWrite => PCWrite);
 
-    d_rs1 <= d_instr_word (LOG2_XRF_SIZE+14 downto 15);
-    d_rs2 <= d_instr_word (LOG2_XRF_SIZE+19 downto 20);
-    d_rd <= d_instr_word (LOG2_XRF_SIZE+6 downto 7);
-    d_funct3 <= d_instr_word (14 downto 12);
-    d_funct7 <= d_instr_word (31 downto 25);
+                          JumpIn => m_JumpOut, RegWriteIn => m_RegWriteOut, MemToRegIn => m_MemToRegOut,
+
+                          JumpOut => c_jump,RegWriteOut => c_reg_write, MemToRegOut => c_mem_to_reg,
+
+                          readin => dmem_dataout, rdin => m_rdout, ALUin => dmem_datain, 
+                          ALUout => w_ALUout, readout => w_readout, rdout => w_rdout);
+    
+    DFU : DFU port map (EXMEMRegWrite => m_RegWriteOut, MEMWBRegWrite => c_reg_write, EXMEMReg => m_rdout, MEMWBReg => w_rdout,
+                         RS1 => d_rs1, RS2 => d_rs2,
+                        ForwardA => c_alu_src1, ForwardB => c_alu_src2);
+    
+    HDU : HDU port map (Inst => c_immemout, IDEXMemRead => ex_MemReadOut, ExReg => e_rdout,
+                        ctrl => cm_selector, IFIDWrite => hd_IFIDWrite , PCWrite => hd_PCWrite
+    );
+
+
+    d_rs1 <= c_immemout (LOG2_XRF_SIZE+14 downto 15);
+    d_rs2 <= c_immemout (LOG2_XRF_SIZE+19 downto 20);
+    d_rd <= c_immemout (LOG2_XRF_SIZE+6 downto 7);
+    d_funct3 <= c_immemout (14 downto 12);
+    d_funct7 <= c_immemout (31 downto 25);
 
     d_zero <= (others=>'0');
 
