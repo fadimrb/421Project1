@@ -36,10 +36,10 @@ entity IDEX is
         rdin: in std_logic_vector(XLEN-1 downto 0);
         rs1in : in std_logic_vector (4 downto 0);
         rs2in : in std_logic_vector (4 downto 0);
-        idexregIn: in std_logic_vector (4 downto 0);
         regAout: out std_logic_vector(XLEN-1 downto 0);
         regBout: out std_logic_vector(XLEN-1 downto 0);
-        idexregOut: out std_logic_vector (4 downto 0);
+        rs1out : out std_logic_vector (4 downto 0);
+        rs2out : out std_logic_vector (4 downto 0);
         rdout: out std_logic_vector(XLEN-1 downto 0)        
     );
 end IDEX;
@@ -63,6 +63,8 @@ begin
             MemReadOut <= '0';
             MemToRegOut <= '0';
             PCOut<= (others => '0');
+            rs1out<= (others => '0');
+            rs2out<= (others => '0');
             regAout<= (others => '0');
             regBout<= (others => '0');
             rdout<= (others => '0');  
@@ -81,6 +83,8 @@ begin
             MemReadOut <= MemReadIn;
             MemToRegOut <= MemToRegIn;
             PCOut<= PCIn;
+            rs1out<= rs1in;
+            rs2out<= rs2in;
             regAout<= regAin;
             regBout<= regBin;
             rdout<= rdin;  
