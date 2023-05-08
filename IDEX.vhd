@@ -62,7 +62,6 @@ begin
             MemWriteOut <= '0';
             MemReadOut <= '0';
             MemToRegOut <= '0';
-            immgenin<= (others => '0');
             PCOut<= (others => '0');
             regAout<= (others => '0');
             regBout<= (others => '0');
@@ -80,7 +79,6 @@ begin
             ALUOpOut <= ALUOpIn;
             MemWriteOut <= MemWriteIn;
             MemReadOut <= MemReadIn;
-            immgenout <= immgenin;
             MemToRegOut <= MemToRegIn;
             PCOut<= PCIn;
             regAout<= regAin;
