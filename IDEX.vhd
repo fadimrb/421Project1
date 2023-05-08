@@ -34,11 +34,9 @@ entity IDEX is
         regAin: in std_logic_vector(XLEN-1 downto 0);
         regBin: in std_logic_vector(XLEN-1 downto 0);
         rdin: in std_logic_vector(XLEN-1 downto 0);
-        immgenin: in std_logic_vector(XLEN-1 downto 0);
         rs1in : in std_logic_vector (4 downto 0);
         rs2in : in std_logic_vector (4 downto 0);
         idexregIn: in std_logic_vector (4 downto 0);
-        immgenout: out std_logic_vector(XLEN-1 downto 0);
         regAout: out std_logic_vector(XLEN-1 downto 0);
         regBout: out std_logic_vector(XLEN-1 downto 0);
         idexregOut: out std_logic_vector (4 downto 0);
