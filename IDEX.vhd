@@ -31,15 +31,17 @@ entity IDEX is
         MemWriteOut : out std_logic;
         MemReadOut : out std_logic;
         MemToRegOut : out std_logic;
-        PCin: in std_logic_vector(XLEN-1 downto 0);
         regAin: in std_logic_vector(XLEN-1 downto 0);
         regBin: in std_logic_vector(XLEN-1 downto 0);
         rdin: in std_logic_vector(XLEN-1 downto 0);
         immgenin: in std_logic_vector(XLEN-1 downto 0);
+        rs1in : in std_logic_vector (4 downto 0);
+        rs2in : in std_logic_vector (4 downto 0);
+        idexregIn: in std_logic_vector (4 downto 0);
         immgenout: out std_logic_vector(XLEN-1 downto 0);
-        PCOut: out std_logic_vector(XLEN-1 downto 0);
         regAout: out std_logic_vector(XLEN-1 downto 0);
         regBout: out std_logic_vector(XLEN-1 downto 0);
+        idexregOut: out std_logic_vector (4 downto 0);
         rdout: out std_logic_vector(XLEN-1 downto 0)        
     );
 end IDEX;
