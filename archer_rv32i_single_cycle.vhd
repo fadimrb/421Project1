@@ -210,14 +210,11 @@ architecture rtl of archer_rv32i_single_cycle is
             MemWriteOut : out std_logic;
             MemReadOut : out std_logic;
             MemToRegOut : out std_logic;
-
-            PCin: in std_logic_vector(XLEN-1 downto 0);
+            
             regAin: in std_logic_vector(XLEN-1 downto 0);
             regBin: in std_logic_vector(XLEN-1 downto 0);
             rdin: in std_logic_vector(XLEN-1 downto 0);
-            immgenin: in std_logic_vector(XLEN-1 downto 0);
 
-            immgenout: out std_logic_vector(XLEN-1 downto 0);
             PCOut: out std_logic_vector(XLEN-1 downto 0);
             regAout: out std_logic_vector(XLEN-1 downto 0);
             regBout: out std_logic_vector(XLEN-1 downto 0);
@@ -325,6 +322,11 @@ architecture rtl of archer_rv32i_single_cycle is
     signal e_regAin : std_logic_vector (XLEN-1 downto 0);
     signal e_regBin : std_logic_vector (XLEN-1 downto 0); 
     signal e_PCin : std_logic_vector (XLEN-1 downto 0);
+    signal e_immgenout : std_logic_vector (XLEN-1 downto 0); 
+    signal e_rdout : std_logic_vector (4 downto 0); 
+    signal e_regAout : std_logic_vector (XLEN-1 downto 0);
+    signal e_regBout : std_logic_vector (XLEN-1 downto 0); 
+    signal e_PCout : std_logic_vector (XLEN-1 downto 0);
 
     -- MEM signals 
     signal m_RegWriteIn : std_logic;
@@ -429,6 +431,24 @@ architecture rtl of archer_rv32i_single_cycle is
     signal d_funct3 : std_logic_vector (2 downto 0);
     signal d_funct7 : std_logic_vector (6 downto 0);
 
+    --IDEX signals
+    signal c2_branch_out : std_logic;
+    signal c2_jump : std_logic;
+    signal c2_lui : std_logic;
+    signal c2_CSR : std_logic;
+    signal c2_PCSrc : std_logic;
+    signal c2_reg_write : std_logic;
+    signal c2_alu_src1 : std_logic;
+    signal c2_alu_src2 : std_logic;
+    signal c2_alu_src3 : std_logic;
+    signal c2_alu_op : std_logic_vector (3 downto 0);
+    signal c2_mem_write : std_logic;
+    signal c2_mem_read : std_logic;
+    signal c2_mem_to_reg : std_logic;
+    signal c2_CSR_out: std_logic_vector (31 downto 0);
+    signal c2_CSR_in: std_logic_vector (31 downto 0);
+    signal c2_CSR_addr: std_logic_vector (11 downto 0);
+
 begin
 
     pc_inst : pc port map (clk => clk, rst_n => rst_n, datain => d_pc_in, dataout => d_pc_out);
@@ -481,11 +501,11 @@ begin
     IFID : IFID port map (clk => clk, rst => rst_n, IFFlush => PCSrc, PCin => PCin, IMEMin => f_pc_out,
                           PCOut => PCout, IMEMOut => IMEMOut);
 
-    IDEX : IDEX port map (clk => clk, rst => rst_n, JumpIn => JumpIn, 
+    IDEX : IDEX port map (clk => clk, rst => rst_n, JumpIn => c_jump, 
                           LuiIn => c_lui, CSRin => c_CSR, PCSrcIn => c_PCSrc, RegWriteIn => c_reg_write, ALUSrc1 => c_alu_src1, ALUSrc2 => c_alu_src2, ALUSrc3 => c_alu_src3, ALUOp => c_alu_op, MemWriteIn => c_mem_write, MemReadIn => c_mem_read, MemToRegIn => c_mem_to_reg,
-                          JumpOut => JumpOut, LuiOut => LuiOut, CSROut => CSROut, PCSrcOut => PCSrcOut, RegWriteOut => RegWriteOut, ALUSrc1Out => ALUSrc1Out, ALUSrc2Out => ALUSrc2Out, ALUSrc3Out => ALUSrc3Out, ALUOpOut => ALUOpOut, MemWriteOut => MemWriteOut, MemReadOut => MemReadOut, MemToRegOut => MemToRegOut,
-                          PCin => e_PCin, regAin => e_regAin, regBin => e_regBin, rdin => e_rdin, immgenin => e_immgenin,
-                          immgenout => immgenout, PCOut => PCOUT, regAout => regAout, regBout => regBout, rdout => rdout);
+                          JumpOut => c2_jump, LuiOut => c2_lui, CSROut => c2_csr, PCSrcOut => c2_pcsrc, RegWriteOut => c2_reg_write, ALUSrc1Out => c2_alu_src1, ALUSrc2Out => c2_alu_src2, ALUSrc3Out => c2_alu_src3, ALUOpOut => c2_alu_op, MemWriteOut => c2_mem_write, MemReadOut => c2_mem_read, MemToRegOut => c2_mem_to_reg,
+                          regAin => e_regAin, regBin => e_regBin, rdin => e_rdin, immgenin => e_immgenin,
+                          immgenout => e_immgenout, regAout => e_regAout, regBout => e_regBout, rdout => e_rdout);
     
     EXMEM : EXMEM port map (clk => clk, rst => rst_n,
                           JumpIn => c_jump ,LuiIn => c_lui, PCSrcIn => c_PCSrc, RegWriteIn => m_RegWriteIn, MemWriteIn => m_MemWriteIn, MemReadIn => m_MemReadIn, MemToRegIn => m_MemToRegIn,
