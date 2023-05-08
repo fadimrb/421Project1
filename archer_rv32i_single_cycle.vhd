@@ -415,6 +415,25 @@ begin
 
     CSR_RF: CSR_reg port map (clk => clk, rst_n => rst_n, instruction => d_instr_word, CSR => c_CSR, CSR_out => c_CSR_out, CSR_in => d_alu_out, CSR_addr => c_CSR_addr);
 
+    IFID : IFID port map (clk => clk, rst => rst_n, IFFlush => PCSrc, PCin => PCin,IMEMin => fp_instr_word, PCOut => PCout, IMEMOut => IMEMOut);
+
+    IDEX : IDEX port map (clk => clk, rst => rst_n, JumpIn => JumpIn, 
+                          LuiIn => c_lui, CSRin => c_CSR, PCSrcIn => c_PCSrc, RegWriteIn => c_reg_write, ALUSrc1 => c_alu_src1, ALUSrc2 => c_alu_src2, ALUSrc3 => c_alu_src3, ALUOp => c_alu_op, MemWriteIn => c_mem_write, MemReadIn => c_mem_read, MemToRegIn => c_mem_to_reg,
+                          JumpOut => JumpOut, LuiOut => LuiOut, CSROut => CSROut, PCSrcOut => PCSrcOut, RegWriteOut => RegWriteOut, ALUSrc1Out => ALUSrc1Out, ALUSrc2Out => ALUSrc2Out, ALUSrc3Out => ALUSrc3Out, ALUOpOut => ALUOpOut, MemWriteOut => MemWriteOut, MemReadOut => MemReadOut, MemToRegOut => MemToRegOut,
+                          PCin => d_pc_in, regAin => d_regA, regBin => d_regB, rdin => d_rd, immgenin => d_immediate,
+                          immgenout => immgenout, PCOut => PCOUT, regAout => regAout, regBout => regBout, rdout => rdout);
+    
+    EXMEM : EXMEM port map (clk => clk, rst => rst_n,
+                          JumpIn => c_jump ,LuiIn => c_lui, PCSrcIn => c_PCSrc, RegWriteIn => c_reg_write, MemWriteIn => c_mem_write, MemReadIn => c_mem_read, MemToRegIn => c_mem_to_reg,
+                          JumpOut => JumpOut, LuiOut => LuiOut, PCSrcOut => PCSrcOut, RegWriteOut => RegWriteOut, MemWriteOut => MemWriteOut, MemReadOut => MemReadOut, MemToRegOut => MemToRegOut,
+                          ALUin => d_alu_out, regBin => d_regB, rdin => d_rd, ALUout => d_alu_out, regBout => d_regB, rdout => d_rd
+                          ALUout => ALUout, regBout => regBout, rdout => rdout);
+    
+    MEMWB : MEMWB port map (clk => clk, rst => rst_n, JumpIn => c_jump, LuiIn => c_lui, RegWriteIn => c_reg_write, MemToRegIn => c_mem_to_reg,
+                          JumpOut => JumpOut, LuiOut => LuiOut, RegWriteOut => RegWriteOut, MemToRegOut => MemToRegOut,
+                          readin => d_data_mem_out, rdin => d_rd, ALUin => d_alu_out, 
+                          ALUout => ALUout, readout => readout, rdout => rdout);                        
+
     d_rs1 <= d_instr_word (LOG2_XRF_SIZE+14 downto 15);
     d_rs2 <= d_instr_word (LOG2_XRF_SIZE+19 downto 20);
     d_rd <= d_instr_word (LOG2_XRF_SIZE+6 downto 7);
