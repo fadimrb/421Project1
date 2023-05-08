@@ -551,11 +551,6 @@ begin
 
     alu_src3_mux : mux2to1 port map (sel => c_alu_src3, input0 => d_alu_out, input1 => d_mul_alu_out, output => d_alu_src3);
 
-    ldmb_inst : lmb port map (proc_addr => d_alu_out, proc_data_send => d_regB,
-                               proc_data_receive => d_data_mem_out, proc_byte_mask => d_byte_mask,
-                               proc_sign_ext_n => d_sign_ext_n, proc_mem_write => c_mem_write, proc_mem_read => c_mem_read,
-                               mem_addr => dmem_addr, mem_datain => dmem_datain, mem_dataout => dmem_dataout,
-                               mem_wen => dmem_wen, mem_ben => dmem_ben);
 
     CSR_WB_mux : mux2to1 port map (sel => c_CSR, input0 => d_alu_src3, input1 => c_CSR_out, output => d_csr_wb_mux_out);
     mem_mux : mux2to1 port map (sel => c_mem_to_reg, input0 => d_csr_wb_mux_out, input1 => d_data_mem_out, output => d_mem_mux_out);
@@ -605,16 +600,23 @@ begin
 
                           JumpOut => c_jump,RegWriteOut => c_reg_write, MemToRegOut => c_mem_to_reg,
 
-                          readin => dmem_dataout, rdin => m_rdout, ALUin => dmem_datain, 
+                          readin => dmem_dataout, rdin => m_rdout, ALUin => w_ALUout, 
                           ALUout => w_ALUout, readout => w_readout, rdout => w_rdout);
+    
+    ldmb_inst : lmb port map (proc_addr => m_rdout, proc_data_send => w_ALUout,
+                               proc_data_receive => d_data_mem_out, proc_byte_mask => d_byte_mask,
+                               proc_sign_ext_n => d_sign_ext_n, proc_mem_write => m_MemWriteOut, proc_mem_read => m_MemReadOut,
+                               mem_addr => dmem_addr, mem_datain => dmem_datain, mem_dataout => dmem_dataout,
+                               mem_wen => dmem_wen, mem_ben => dmem_ben);
     
     DFU : DFU port map (EXMEMRegWrite => m_RegWriteOut, MEMWBRegWrite => c_reg_write, EXMEMReg => m_rdout, MEMWBReg => w_rdout,
                          RS1 => d_rs1, RS2 => d_rs2,
                         ForwardA => c_alu_src1, ForwardB => c_alu_src2);
     
     HDU : HDU port map (Inst => c_immemout, IDEXMemRead => ex_MemReadOut, ExReg => e_rdout,
-                        ctrl => cm_selector, IFIDWrite => hd_IFIDWrite , PCWrite => hd_PCWrite
-    );
+                        ctrl => cm_selector, IFIDWrite => hd_IFIDWrite , PCWrite => hd_PCWrite);
+    
+
 
 
     d_rs1 <= c_immemout (LOG2_XRF_SIZE+14 downto 15);
