@@ -22,10 +22,8 @@ entity EXMEM is
         MemReadOut : out std_logic;
         MemToRegOut : out std_logic;
         ALUin: in std_logic_vector(XLEN-1 downto 0);
-        regBin: in std_logic_vector(XLEN-1 downto 0);
         rdin: in std_logic_vector(XLEN-1 downto 0);
         ALUout: out std_logic_vector(XLEN-1 downto 0);
-        regBout: out std_logic_vector(XLEN-1 downto 0);
         rdout: out std_logic_vector(XLEN-1 downto 0)        
     );
 end EXMEM;
@@ -42,7 +40,6 @@ begin
             MemWriteOut <= '0';
             MemReadOut <= '0';
             MemToRegOut <= '0';
-            regBout<= (others => '0');
             ALUout <= (others => '0');
             rdout<= (others => '0');  
         elsif rising_edge(clk) then 
@@ -54,7 +51,6 @@ begin
             MemReadOut <= MemReadIn;
             MemToRegOut <= MemToRegIn;
             ALUout,<= ALUin;
-            regBout<= regBin;
             rdout<= rdin;  
         end if;
     end process;
